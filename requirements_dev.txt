@@ -10,4 +10,3 @@ PyYAML==3.11
 pytest==2.9.2
 mock
 requests
-cryptography
