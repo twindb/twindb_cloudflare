@@ -9,7 +9,8 @@ Tests for `twindb_cloudflare` module.
 """
 import mock as mock
 import pytest
-from twindb_cloudflare.twindb_cloudflare import CloudFlare, CloudFlareException
+from twindb_cloudflare.twindb_cloudflare import CloudFlare, CloudFlareException, \
+    CF_API_ENDPOINT
 
 
 @pytest.fixture
@@ -29,22 +30,29 @@ def headers():
 def test_cf_init_set_attr(cloudflare):
     assert cloudflare.email == "a@a.com"
     assert cloudflare.auth_key == "foo"
+    assert cloudflare._api_endpoint == CF_API_ENDPOINT
 
 
 @mock.patch('twindb_cloudflare.twindb_cloudflare.requests')
 def test_api_call_calls_request(mock_requests, cloudflare, headers):
-    cloudflare._api_call('some url')
+    api_request = '/foo'
+    cloudflare._api_call(api_request)
 
     for method in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']:
-        cloudflare._api_call('some url', method=method)
+        cloudflare._api_call(api_request, method=method)
 
-    mock_requests.get.assert_called_with('some url', headers=headers)
+    mock_requests.get.assert_called_with(CF_API_ENDPOINT + api_request,
+                                         headers=headers)
     assert mock_requests.get.call_count == 2
 
-    mock_requests.post.assert_called_once_with('some url', headers=headers)
-    mock_requests.put.assert_called_once_with('some url', headers=headers)
-    mock_requests.patch.assert_called_once_with('some url', headers=headers)
-    mock_requests.delete.assert_called_once_with('some url', headers=headers)
+    mock_requests.post.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                               headers=headers)
+    mock_requests.put.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                              headers=headers)
+    mock_requests.patch.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                                headers=headers)
+    mock_requests.delete.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                                 headers=headers)
 
 
 
@@ -69,14 +77,17 @@ def test_api_call_calls_request_with_data(mock_requests, cloudflare, headers):
     data = {
         'some': 'data'
     }
+    api_request = '/foo'
 
     for method in ['POST', 'PUT', 'PATCH']:
-        cloudflare._api_call('some url', method=method, data=data)
+        cloudflare._api_call(api_request, method=method, data=data)
 
-    mock_requests.post.assert_called_once_with('some url',
+    mock_requests.post.assert_called_once_with(CF_API_ENDPOINT + api_request,
                                                headers=headers,
                                                data=data)
-    mock_requests.put.assert_called_once_with('some url', headers=headers,
+    mock_requests.put.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                              headers=headers,
                                               data=data)
-    mock_requests.patch.assert_called_once_with('some url', headers=headers,
+    mock_requests.patch.assert_called_once_with(CF_API_ENDPOINT + api_request,
+                                                headers=headers,
                                                 data=data)

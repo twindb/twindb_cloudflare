@@ -2,6 +2,8 @@
 
 import requests
 
+CF_API_ENDPOINT = "https://api.cloudflare.com/client/v4"
+
 
 class CloudFlareException(Exception):
     """
@@ -21,14 +23,17 @@ class CloudFlare(object):
     """CloudFlare authentication key
     See "API Key" on https://www.cloudflare.com/a/account/my-account
     """
+    _api_endpoint = None
+    """The stable HTTPS endpoint for the latest version"""
 
-    def __init__(self, email, auth_key):
+    def __init__(self, email, auth_key, api_endpoint=CF_API_ENDPOINT):
         """
         CloudFlare class constructor
         :param str email: CloudFlare e-mail
         :param str auth_key: CloudFlare authentication key
-
+        :param str api_endpoint: CloudFlare API endpoint
         """
+        self._api_endpoint = api_endpoint
         self._auth_key = auth_key
         self._email = email
 
@@ -65,16 +70,17 @@ class CloudFlare(object):
         if data:
             req_params['data'] = data
 
+        real_url = self._api_endpoint + url
         if method == "GET":
-            r = requests.get(url, **req_params)
+            r = requests.get(real_url, **req_params)
         elif method == "POST":
-            r = requests.post(url, **req_params)
+            r = requests.post(real_url, **req_params)
         elif method == "PUT":
-            r = requests.put(url, **req_params)
+            r = requests.put(real_url, **req_params)
         elif method == "PATCH":
-            r = requests.patch(url, **req_params)
+            r = requests.patch(real_url, **req_params)
         elif method == "DELETE":
-            r = requests.delete(url, **req_params)
+            r = requests.delete(real_url, **req_params)
         else:
             raise CloudFlareException("Method %s is not supported")
 
