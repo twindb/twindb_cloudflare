@@ -85,6 +85,8 @@ class CloudFlare(object):
                 r = requests.delete(real_url, **req_params)
             else:
                 raise CloudFlareException("Method %s is not supported")
+
+            r.raise_for_status()
         except RequestException as err:
             raise CloudFlareException(err)
         return r.json()

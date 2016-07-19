@@ -121,6 +121,9 @@ def test_api_call_raises_exception_connection_error(mock_requests,
         with pytest.raises(CloudFlareException):
             cloudflare._api_call('/foo')
 
-    #mock_requests.get.side_effect = requests.Timeout('Some error')
-    #with pytest.raises(CloudFlareException):
-    #    cloudflare._api_call('/foo')
+
+@mock.patch.object(requests.Response, 'raise_for_status')
+def test_exception_on_non200(mock_raise_for_status, cloudflare):
+    mock_raise_for_status.side_effect = requests.HTTPError('error')
+    with pytest.raises(CloudFlareException):
+        cloudflare._api_call('/foo')
