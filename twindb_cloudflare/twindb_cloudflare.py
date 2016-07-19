@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+from requests.exceptions import RequestException
 
 CF_API_ENDPOINT = "https://api.cloudflare.com/client/v4"
 
@@ -71,17 +72,19 @@ class CloudFlare(object):
             req_params['data'] = data
 
         real_url = self._api_endpoint + url
-        if method == "GET":
-            r = requests.get(real_url, **req_params)
-        elif method == "POST":
-            r = requests.post(real_url, **req_params)
-        elif method == "PUT":
-            r = requests.put(real_url, **req_params)
-        elif method == "PATCH":
-            r = requests.patch(real_url, **req_params)
-        elif method == "DELETE":
-            r = requests.delete(real_url, **req_params)
-        else:
-            raise CloudFlareException("Method %s is not supported")
-
+        try:
+            if method == "GET":
+                r = requests.get(real_url, **req_params)
+            elif method == "POST":
+                r = requests.post(real_url, **req_params)
+            elif method == "PUT":
+                r = requests.put(real_url, **req_params)
+            elif method == "PATCH":
+                r = requests.patch(real_url, **req_params)
+            elif method == "DELETE":
+                r = requests.delete(real_url, **req_params)
+            else:
+                raise CloudFlareException("Method %s is not supported")
+        except RequestException as err:
+            raise CloudFlareException(err)
         return r.json()

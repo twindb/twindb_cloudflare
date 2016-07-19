@@ -9,7 +9,9 @@ Tests for `twindb_cloudflare` module.
 """
 import mock as mock
 import pytest
-from twindb_cloudflare.twindb_cloudflare import CloudFlare, CloudFlareException, \
+import requests
+from twindb_cloudflare.twindb_cloudflare import CloudFlare, \
+    CloudFlareException, \
     CF_API_ENDPOINT
 
 
@@ -91,3 +93,34 @@ def test_api_call_calls_request_with_data(mock_requests, cloudflare, headers):
     mock_requests.patch.assert_called_once_with(CF_API_ENDPOINT + api_request,
                                                 headers=headers,
                                                 data=data)
+
+
+@mock.patch('twindb_cloudflare.twindb_cloudflare.requests')
+def test_api_call_raises_exception_connection_error(mock_requests,
+                                                    cloudflare):
+
+    for ex in [requests.exceptions.RequestException,
+               requests.exceptions.HTTPError,
+               requests.exceptions.ConnectionError,
+               requests.exceptions.ProxyError,
+               requests.exceptions.SSLError,
+               requests.exceptions.Timeout,
+               requests.exceptions.ConnectTimeout,
+               requests.exceptions.ReadTimeout,
+               requests.exceptions.URLRequired,
+               requests.exceptions.TooManyRedirects,
+               requests.exceptions.MissingSchema,
+               requests.exceptions.InvalidSchema,
+               requests.exceptions.InvalidURL,
+               requests.exceptions.ChunkedEncodingError,
+               requests.exceptions.ContentDecodingError,
+               requests.exceptions.StreamConsumedError,
+               requests.exceptions.RetryError]:
+
+        mock_requests.get.side_effect = ex('Some error')
+        with pytest.raises(CloudFlareException):
+            cloudflare._api_call('/foo')
+
+    #mock_requests.get.side_effect = requests.Timeout('Some error')
+    #with pytest.raises(CloudFlareException):
+    #    cloudflare._api_call('/foo')
