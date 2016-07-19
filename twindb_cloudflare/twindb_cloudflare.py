@@ -89,4 +89,27 @@ class CloudFlare(object):
             r.raise_for_status()
         except RequestException as err:
             raise CloudFlareException(err)
-        return r.json()
+        r_json = r.json()
+        try:
+            if r_json['success']:
+                return r_json
+            else:
+                msg = 'CloudFlare API call failed with errors'
+                if 'errors' in r_json:
+                    msg += ': %r' % r_json['errors']
+                raise CloudFlareException(msg)
+        except (KeyError, TypeError) as err:
+            raise CloudFlareException(err)
+
+    def get_zone_id(self, name):
+        """
+        Get zone id of a given zone
+        :param name: zone name
+        :return: id of the zone
+        :raise: CloudFlareException if zone is not found or other error
+        """
+        try:
+            response = self._api_call("/zones?name=%s" % name)
+            return response["result"][0]["id"]
+        except IndexError as err:
+            raise CloudFlareException(err)

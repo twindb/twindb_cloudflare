@@ -57,7 +57,6 @@ def test_api_call_calls_request(mock_requests, cloudflare, headers):
                                                  headers=headers)
 
 
-
 def test_api_call_exception_if_get_data(cloudflare):
     data = {
         'some': 'data'
@@ -127,3 +126,139 @@ def test_exception_on_non200(mock_raise_for_status, cloudflare):
     mock_raise_for_status.side_effect = requests.HTTPError('error')
     with pytest.raises(CloudFlareException):
         cloudflare._api_call('/foo')
+
+
+@pytest.mark.parametrize('api_response', [
+    (
+        {u'errors': [],
+         u'messages': [],
+         u'result': [],
+         u'result_info': {u'count': 0,
+                          u'page': 1,
+                          u'per_page': 20,
+                          u'total_count': 0,
+                          u'total_pages': 0},
+         u'success': False}
+
+    ),
+    (
+        {u'success': False}
+    ),
+    (
+        {}
+    ),
+    (
+        None
+    )
+])
+@mock.patch('twindb_cloudflare.twindb_cloudflare.requests')
+def test_call_api_raises_exception_if_success_false(mock_requests,
+                                                    api_response,
+                                                    cloudflare):
+
+    class MockResponse(object):
+        _api_response = api_response
+
+        def json(self):
+            return self._api_response
+
+        def raise_for_status(self):
+            pass
+
+    mock_requests.get.return_value = MockResponse()
+    with pytest.raises(CloudFlareException):
+        cloudflare._api_call('foo')
+
+
+@pytest.mark.parametrize('api_response,expected_value', [
+    (
+        {u'errors': [],
+         u'messages': [],
+         u'result': [{u'created_on': u'2014-10-04T02:15:17.107427Z',
+                      u'development_mode': -25346890,
+                      u'id': u'02cffc58027ebabbe29614c6bf6e3716',
+                      u'meta': {u'custom_certificate_quota': 0,
+                                u'multiple_railguns_allowed': False,
+                                u'page_rule_quota': 3,
+                                u'phishing_detected': False,
+                                u'step': 4,
+                                u'wildcard_proxiable': False},
+                      u'modified_on': u'2016-07-16T22:33:38.193745Z',
+                      u'name': u'twindb.com',
+                      u'name_servers': [u'becky.ns.cloudflare.com',
+                                        u'rick.ns.cloudflare.com'],
+                      u'original_dnshost': u'GoDaddy',
+                      u'original_name_servers': [u'NS55.DOMAINCONTROL.COM',
+                                                 u'NS56.DOMAINCONTROL.COM'],
+                      u'original_registrar': u'GoDaddy',
+                      u'owner': {u'email': u'aleks@twindb.com',
+                                 u'id': u'16e84aea14777e7f16b074409d956b82',
+                                 u'type': u'user'},
+                      u'paused': False,
+                      u'permissions': [u'#analytics:read',
+                                       u'#billing:edit',
+                                       u'#billing:read',
+                                       u'#cache_purge:edit',
+                                       u'#dns_records:edit',
+                                       u'#dns_records:read',
+                                       u'#lb:edit',
+                                       u'#lb:read',
+                                       u'#logs:read',
+                                       u'#organization:edit',
+                                       u'#organization:read',
+                                       u'#ssl:edit',
+                                       u'#ssl:read',
+                                       u'#waf:edit',
+                                       u'#waf:read',
+                                       u'#zone:edit',
+                                       u'#zone:read',
+                                       u'#zone_settings:edit',
+                                       u'#zone_settings:read'],
+                      u'plan': {u'can_subscribe': None,
+                                u'currency': u'USD',
+                                u'externally_managed': False,
+                                u'frequency': u'',
+                                u'id': u'0feeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                                u'is_subscribed': None,
+                                u'legacy_discount': False,
+                                u'legacy_id': u'free',
+                                u'name': u'Free Website',
+                                u'price': 0},
+                      u'status': u'active',
+                      u'type': u'full'}],
+         u'result_info': {u'count': 1,
+                          u'page': 1,
+                          u'per_page': 20,
+                          u'total_count': 1,
+                          u'total_pages': 1},
+         u'success': True},
+        '02cffc58027ebabbe29614c6bf6e3716'
+    )
+])
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_zone_returns_int(mock_api_call, cloudflare, api_response,
+                              expected_value):
+    mock_api_call.return_value = api_response
+    assert cloudflare.get_zone_id('foo') == expected_value
+
+
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_zone_exceptio_if_zone_not_found(mock_api_call, cloudflare):
+    mock_api_call.return_value = {u'errors': [],
+                                  u'messages': [],
+                                  u'result': [],
+                                  u'result_info': {u'count': 0,
+                                                   u'page': 1,
+                                                   u'per_page': 20,
+                                                   u'total_count': 0,
+                                                   u'total_pages': 0},
+                                  u'success': True}
+    with pytest.raises(CloudFlareException):
+        cloudflare.get_zone_id('foo')
+
+
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_zone_exception_if_api_error(mock_api_call, cloudflare):
+    mock_api_call.side_effect = CloudFlareException('error')
+    with pytest.raises(CloudFlareException):
+        cloudflare.get_zone_id('foo')
