@@ -340,6 +340,7 @@ def test_update_record_updates_record(mock_api_call, mock_get_record_id,
                                           method="PUT",
                                           data=json.dumps(data))
 
+
 @pytest.mark.parametrize('api_response', [
     (
         {u'errors': [],
@@ -374,3 +375,65 @@ def test_update_record_exception(mock_api_call, mock_get_record_id,
     with pytest.raises(CloudFlareException):
         cloudflare.update_dns_record('a', 'b', 'c', 'd', 1)
 
+
+@mock.patch.object(CloudFlare, 'get_zone_id')
+@mock.patch.object(CloudFlare, '_api_call')
+def test_update_record_updates_record(mock_api_call,
+                                      mock_get_zone_id,
+                                      cloudflare):
+
+    mock_get_zone_id.return_value = 'zone_id'
+
+    cloudflare.create_dns_record('some name',
+                                 'some zone',
+                                 'some content',
+                                 data={'some key': 'some value'},
+                                 record_type='some type',
+                                 ttl=123)
+
+    request = {
+        "name": 'some name',
+        "content": 'some content',
+        "type": 'some type',
+        "ttl": 123,
+        "data": {'some key': 'some value'}
+    }
+    mock_api_call.assert_called_once_with("/zones/zone_id/dns_records",
+                                          method="POST",
+                                          data=json.dumps(request))
+
+
+@pytest.mark.parametrize('api_response', [
+    (
+        {u'errors': [],
+         u'messages': [],
+         u'result': [],
+         u'result_info': {u'count': 0,
+                          u'page': 1,
+                          u'per_page': 20,
+                          u'total_count': 0,
+                          u'total_pages': 0},
+         u'success': False}
+
+    ),
+    (
+        {u'success': False}
+    ),
+    (
+        {}
+    ),
+    (
+        None
+    )
+])
+@mock.patch.object(CloudFlare, 'get_zone_id')
+@mock.patch.object(CloudFlare, '_api_call')
+def test_update_record_exception(mock_api_call,
+                                 mock_get_zone_id,
+                                 api_response,
+                                 cloudflare):
+
+    mock_get_zone_id.return_value = 'some_zone_id'
+    mock_api_call.return_value = api_response
+    with pytest.raises(CloudFlareException):
+        cloudflare.create_dns_record('a', 'b', 'c', 'd', 'e', 1)

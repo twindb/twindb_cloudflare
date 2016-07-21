@@ -162,3 +162,45 @@ class CloudFlare(object):
         except (KeyError, TypeError) as err:
             raise CloudFlareException(err)
 
+    def create_dns_record(self, name, zone, content,
+                          data=None, record_type="A", ttl=1):
+        """
+        Create a new DNS record for a zone.
+        :param name: DNS record name - "example.com"
+        :param zone: zone name
+        :param content: DNS record content - "127.0.0.1"
+        :param data: Optional parameters for DNS record.
+                    For example, an SRV record for etcd server needs this:
+                     {
+                        "name": DISCOVERY_SRV_DOMAIN,
+                        "port": 2380,
+                        "priority": 0,
+                        "proto": "_tcp",
+                        "service": "_etcd-server",
+                        "target": dns_record_name,
+                        "weight": 0
+                        }
+        :param record_type: DNS record type - "A".
+        :param ttl: Time to live for DNS record. Value of 1 is 'automatic'
+        :raise: CloudFlareException if error
+        """
+        zone_id = self.get_zone_id(zone)
+
+        url = "/zones/%s/dns_records" % zone_id
+        request = {
+            "name": name,
+            "content": content,
+            "type": record_type,
+            "ttl": ttl
+        }
+
+        if data:
+            request["data"] = data
+
+        response = self._api_call(url, method="POST", data=json.dumps(request))
+        try:
+            if not response["success"]:
+                raise CloudFlareException('Failed to create DNS record %s '
+                                          'in zone %s' % (name, zone))
+        except (KeyError, TypeError) as err:
+            raise CloudFlareException(err)
