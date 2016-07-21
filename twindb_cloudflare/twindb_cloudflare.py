@@ -154,13 +154,7 @@ class CloudFlare(object):
             "ttl": ttl
         }
 
-        response = self._api_call(url, method="PUT", data=json.dumps(data))
-        try:
-            if not response["success"]:
-                raise CloudFlareException('Failed to update DNS record %s '
-                                          'in zone %s' % (name, zone))
-        except (KeyError, TypeError) as err:
-            raise CloudFlareException(err)
+        self._api_call(url, method="PUT", data=json.dumps(data))
 
     def create_dns_record(self, name, zone, content,
                           data=None, record_type="A", ttl=1):
@@ -197,10 +191,18 @@ class CloudFlare(object):
         if data:
             request["data"] = data
 
-        response = self._api_call(url, method="POST", data=json.dumps(request))
-        try:
-            if not response["success"]:
-                raise CloudFlareException('Failed to create DNS record %s '
-                                          'in zone %s' % (name, zone))
-        except (KeyError, TypeError) as err:
-            raise CloudFlareException(err)
+        self._api_call(url, method="POST", data=json.dumps(request))
+
+    def delete_dns_record(self, name, zone):
+        """
+        Delete DNS record
+        :param name: DNS record name
+        :param zone: zone name
+        :raise: CloudFlareException if error
+        """
+        zone_id = self.get_zone_id(zone)
+        record_id = self.get_record_id(name, zone_id)
+
+        url = "/zones/%s/dns_records/%s" % (zone_id, record_id)
+
+        self._api_call(url, method="DELETE")
