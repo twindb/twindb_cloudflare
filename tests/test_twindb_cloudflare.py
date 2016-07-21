@@ -236,7 +236,7 @@ def test_call_api_raises_exception_if_success_false(mock_requests,
     )
 ])
 @mock.patch.object(CloudFlare, '_api_call')
-def test_get_zone_returns_int(mock_api_call, cloudflare, api_response,
+def test_get_zone_returns_value(mock_api_call, cloudflare, api_response,
                               expected_value):
     mock_api_call.return_value = api_response
     assert cloudflare.get_zone_id('foo') == expected_value
@@ -262,3 +262,58 @@ def test_get_zone_exception_if_api_error(mock_api_call, cloudflare):
     mock_api_call.side_effect = CloudFlareException('error')
     with pytest.raises(CloudFlareException):
         cloudflare.get_zone_id('foo')
+
+
+@pytest.mark.parametrize('api_response,expected_value', [
+    (
+        {u'errors': [],
+         u'messages': [],
+         u'result': [{u'content': u'twindb.com',
+                      u'created_on': u'2015-10-23T22:01:45.752426Z',
+                      u'id': u'168b11c171959cd45c71437837382437',
+                      u'locked': False,
+                      u'meta': {u'auto_added': False},
+                      u'modified_on': u'2015-10-23T22:01:45.752426Z',
+                      u'name': u'www.twindb.com',
+                      u'proxiable': True,
+                      u'proxied': False,
+                      u'ttl': 1,
+                      u'type': u'CNAME',
+                      u'zone_id': u'02cffc58027ebabbe29614c6bf6e3716',
+                      u'zone_name': u'twindb.com'}],
+         u'result_info': {u'count': 1,
+                          u'page': 1,
+                          u'per_page': 20,
+                          u'total_count': 1,
+                          u'total_pages': 1},
+         u'success': True},
+        '168b11c171959cd45c71437837382437'
+    )
+])
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_record_id_returns_value(mock_api_call, cloudflare, api_response,
+                                     expected_value):
+    mock_api_call.return_value = api_response
+    assert cloudflare.get_record_id('foo', 'bar') == expected_value
+
+
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_record_exception_if_zone_not_found(mock_api_call, cloudflare):
+    mock_api_call.return_value = {u'errors': [],
+                                  u'messages': [],
+                                  u'result': [],
+                                  u'result_info': {u'count': 0,
+                                                   u'page': 1,
+                                                   u'per_page': 20,
+                                                   u'total_count': 0,
+                                                   u'total_pages': 0},
+                                  u'success': True}
+    with pytest.raises(CloudFlareException):
+        cloudflare.get_record_id('foo', 'bar')
+
+
+@mock.patch.object(CloudFlare, '_api_call')
+def test_get_record_exception_if_api_error(mock_api_call, cloudflare):
+    mock_api_call.side_effect = CloudFlareException('error')
+    with pytest.raises(CloudFlareException):
+        cloudflare.get_record_id('foo', 'bar')

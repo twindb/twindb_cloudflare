@@ -113,3 +113,18 @@ class CloudFlare(object):
             return response["result"][0]["id"]
         except IndexError as err:
             raise CloudFlareException(err)
+
+    def get_record_id(self, domain_name, zone_id):
+        """
+        Get record id by its name
+        :param domain_name: DNS record name "example.com"
+        :param zone_id: zone identified (returned by get_zone_id())
+        :return: id of the record
+        :raise: CloudFlareException if record is not found or other error
+        """
+        try:
+            response = self._api_call("/zones/%s/dns_records?name=%s" %
+                                      (zone_id, domain_name))
+            return response["result"][0]["id"]
+        except IndexError as err:
+            raise CloudFlareException(err)
