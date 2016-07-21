@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 import requests
 from requests.exceptions import RequestException
@@ -128,3 +129,36 @@ class CloudFlare(object):
             return response["result"][0]["id"]
         except IndexError as err:
             raise CloudFlareException(err)
+
+    def update_dns_record(self, name, zone, content, record_type="A", ttl=1):
+        """
+        Update DNS record
+        :param name: domain name
+        :param zone: zone identifier
+        :param content: content of DNS record. For A records that would be
+                        IP address
+        :param record_type: DNS record type. "A" by default
+        :param ttl: TTL of DNS record. 1 by default
+        :raise: CloudFlareException if record is not found or other error
+        """
+        zone_id = self.get_zone_id(zone)
+
+        record_id = self.get_record_id(name, zone_id)
+
+        url = "/zones/%s/dns_records/%s" % (zone_id, record_id)
+        data = {
+            "id": record_id,
+            "name": name,
+            "content": content,
+            "type": record_type,
+            "ttl": ttl
+        }
+
+        response = self._api_call(url, method="PUT", data=json.dumps(data))
+        try:
+            if not response["success"]:
+                raise CloudFlareException('Failed to update DNS record %s '
+                                          'in zone %s' % (name, zone))
+        except (KeyError, TypeError) as err:
+            raise CloudFlareException(err)
+
