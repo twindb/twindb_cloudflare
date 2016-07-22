@@ -50,12 +50,13 @@ class CloudFlare(object):
     def _api_call(self, url, method="GET", data=None):
         """
         Do API call
+
         :param url: API endpoint
         :param method: HTTP method
         :param data: dictionary with CloudFlare parameters
         :return json: Response from API in JSON object
         :raise: CloudFlareException if API response is not 200
-            or error in input parameters
+                or error in input parameters
         """
         headers = {
             'X-Auth-Email': self._email,
@@ -105,6 +106,7 @@ class CloudFlare(object):
     def get_zone_id(self, name):
         """
         Get zone id of a given zone
+
         :param name: zone name
         :return: id of the zone
         :raise: CloudFlareException if zone is not found or other error
@@ -118,6 +120,7 @@ class CloudFlare(object):
     def get_record_id(self, domain_name, zone_id):
         """
         Get record id by its name
+
         :param domain_name: DNS record name "example.com"
         :param zone_id: zone identified (returned by get_zone_id())
         :return: id of the record
@@ -133,6 +136,7 @@ class CloudFlare(object):
     def update_dns_record(self, name, zone, content, record_type="A", ttl=1):
         """
         Update DNS record
+
         :param name: domain name
         :param zone: zone identifier
         :param content: content of DNS record. For A records that would be
@@ -160,20 +164,21 @@ class CloudFlare(object):
                           data=None, record_type="A", ttl=1):
         """
         Create a new DNS record for a zone.
+
         :param name: DNS record name - "example.com"
         :param zone: zone name
         :param content: DNS record content - "127.0.0.1"
         :param data: Optional parameters for DNS record.
-                    For example, an SRV record for etcd server needs this:
+                     For example, an SRV record for etcd server needs this:
                      {
-                        "name": DISCOVERY_SRV_DOMAIN,
-                        "port": 2380,
-                        "priority": 0,
-                        "proto": "_tcp",
-                        "service": "_etcd-server",
-                        "target": dns_record_name,
-                        "weight": 0
-                        }
+                     "name": DISCOVERY_SRV_DOMAIN,
+                     "port": 2380,
+                     "priority": 0,
+                     "proto": "_tcp",
+                     "service": "_etcd-server",
+                     "target": dns_record_name,
+                     "weight": 0
+                     }
         :param record_type: DNS record type - "A".
         :param ttl: Time to live for DNS record. Value of 1 is 'automatic'
         :raise: CloudFlareException if error
@@ -196,6 +201,7 @@ class CloudFlare(object):
     def delete_dns_record(self, name, zone):
         """
         Delete DNS record
+        
         :param name: DNS record name
         :param zone: zone name
         :raise: CloudFlareException if error
