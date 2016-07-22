@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to TwinDB CloudFlare Library's documentation!
-======================================
+=====================================================
 
 Contents:
 
@@ -14,8 +14,10 @@ Contents:
    readme
    installation
    usage
+   twindb_cloudflare
    contributing
-   authorshistory
+   authors
+   history
 
 Indices and tables
 ==================
