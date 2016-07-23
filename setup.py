@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='twindb_cloudflare',
-    version='0.1.0',
+    version='0.1.1',
     description="TwinDB CloudFlare Library is a module to work with CloudFlare API",
     long_description=readme + '\n\n' + history,
     author="TwinDB Development Team",
