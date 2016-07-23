@@ -10,4 +10,5 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Aleksandr Kuzminsky <aleks@twindb.com>
+* Ovais Tariq <ovaistariq@twindb.com>

@@ -41,10 +41,20 @@ class CloudFlare(object):
 
     @property
     def email(self):
+        """
+        See “API Key” on https://www.cloudflare.com/a/account/my-account
+
+        :return: CloudFlare authentication key
+        """
         return self._email
 
     @property
     def auth_key(self):
+        """
+        See “API Key” on https://www.cloudflare.com/a/account/my-account
+
+        :return: CloudFlare email
+        """
         return self._auth_key
 
     def _api_call(self, url, method="GET", data=None):
@@ -169,16 +179,17 @@ class CloudFlare(object):
         :param zone: zone name
         :param content: DNS record content - "127.0.0.1"
         :param data: Optional parameters for DNS record.
-                     For example, an SRV record for etcd server needs this:
-                     {
-                     "name": DISCOVERY_SRV_DOMAIN,
-                     "port": 2380,
-                     "priority": 0,
-                     "proto": "_tcp",
-                     "service": "_etcd-server",
-                     "target": dns_record_name,
-                     "weight": 0
-                     }
+                     For example, an SRV record for etcd server needs this::
+
+                         {
+                             "name": "twindb.com",
+                             "port": 2380,
+                             "priority": 0,
+                             "proto": "_tcp",
+                             "service": "_etcd-server",
+                             "target": "node0.twindb.com",
+                             "weight": 0
+                         }
         :param record_type: DNS record type - "A".
         :param ttl: Time to live for DNS record. Value of 1 is 'automatic'
         :raise: CloudFlareException if error
@@ -201,7 +212,7 @@ class CloudFlare(object):
     def delete_dns_record(self, name, zone):
         """
         Delete DNS record
-        
+
         :param name: DNS record name
         :param zone: zone name
         :raise: CloudFlareException if error
